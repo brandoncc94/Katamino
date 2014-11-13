@@ -9,11 +9,21 @@
 -export([transpuesta/1]).
 -export([inversa/1]).
 -export([colocarID/1]).
+-export([remove_duplicates/1]).
+-export([colocarPieza/2]).
+-export([generarMatriz/2]).
 
 %Entrada, N * M, Salida
 principal(E, N, M, S) -> principal_aux(quitarSaltoLinea(listaColores(leerArchivo(E))), 
 				colocarID(fix(quitarSaltoLinea(listaFiguras(leerArchivo(E))))),N, M, S).
 principal_aux(Colores, Figuras, _N, _M, _S) -> katamino(Figuras).
+
+generarAuxMatriz(0)->[];
+generarAuxMatriz(N)->[0|generarAuxMatriz(N-1)].
+
+generarMatriz(0,_M)->[];
+generarMatriz(N,M)->[generarAuxMatriz(M)|generarMatriz(N-1,M)].
+
 
 %Generar katamino
 katamino([]) -> [];
@@ -22,9 +32,38 @@ katamino([H|T]) -> katamino_auxi(H, T, 1).
 katamino_auxi([_H|T], R, C) -> katamino_aux(T, R, C).
 
 katamino_aux(_L, R, 9) -> katamino(R);
-katamino_aux([H|_T], R, C) when C == 1 -> io:format("~p~n", [H]), katamino_aux(H, R, C + 1);
-katamino_aux(T, R, C) when C rem 2 == 0 -> L = inversa(T), io:format("~p~n", [L]), katamino_aux(L, R, C + 1);
-katamino_aux(T, R, C) -> L = transpuesta(T), io:format("~p~n", [L]), katamino_aux(L, R, C + 1).
+katamino_aux([H|_T], R, C) when C == 1 -> [H|katamino_aux(H, R, C + 1)];
+katamino_aux(T, R, C) when C rem 2 == 0 -> L = transpuesta(T), [L| katamino_aux(L, R, C + 1)];
+katamino_aux(T, R, C) -> L = inversa(T),[L| katamino_aux(L, R, C + 1)].
+
+
+%colocar Pieza en Matriz
+colocarPieza(Pieza,Matriz)->colPieza(Pieza,Matriz,[],[]).
+
+
+
+colPieza(_,_,_,false)->false;
+colPieza([],T,M,_)->M++T;
+colPieza([H1|T1],[H2|T2],M,_flag)
+->L=colPiezaAux(H1,H2,[]),colPieza(T1,T2,M++[L],L).
+
+colPiezaAux([],T,F)->F++T;
+colPiezaAux(_,[],_)->false;
+colPiezaAux([_H1|_T1],[H2|_T2],_F)when H2 == 1 -> false;
+colPiezaAux([H1|T1],[_|T2],F)->colPiezaAux(T1,T2,F++[H1]).
+
+
+%Borrado de elementos repetidos al realizar los giros;
+delete_all(Item, [Item | Rest_of_list]) ->
+    delete_all(Item, Rest_of_list);
+delete_all(Item, [Another_item| Rest_of_list]) ->
+    [Another_item | delete_all(Item, Rest_of_list)];
+delete_all(_, []) -> [].
+
+remove_duplicates(List)-> removing(List,[]). 
+removing([],This) -> lists:reverse(This);
+removing([A|Tail],Acc) -> 
+    removing(delete_all(A,Tail),[A|Acc]).
 
 %Construir la lista de los colores
 listaColores([]) -> [];

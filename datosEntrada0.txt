@@ -1,0 +1,2 @@
+la entrada del archivo entrada.txt es una matriz de 5 x 6
+cuenta con 8 piezas.

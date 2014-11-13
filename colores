@@ -1,0 +1,8 @@
+(0, 0, 0) es negro
+(255, 255, 255) es blanco
+(255, 0, 0) es rojo
+(0, 255, 0) es verde
+(0, 0, 255) es azul
+(255, 255, 0) es amarillo
+(0, 255, 255) es cian
+(255, 0, 255) es magenta
