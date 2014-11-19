@@ -1,0 +1,2 @@
+katamino:principal('entrada.txt',5,6,'salida.txt')
+c(katamino).
