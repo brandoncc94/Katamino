@@ -1,7 +1,6 @@
 -module(katamino). 
 -export([leerArchivo/1]). 
 -export([principal/4]).
--export([katamino/1]).
 -export([listaColores/1]).
 -export([listaFiguras/1]).
 -export([quitarSaltoLinea/1]).
@@ -13,10 +12,20 @@
 -export([colocarPieza/2]).
 -export([generarMatriz/2]).
 -export([permutaciones/1]).
+-export([generarLisN/1]).
+-export([combinacionesPieza/1]).
+-export([combinarPiezas/1]).
+
+
 %Entrada, N * M, Salida
-principal(E, N, M, S) -> principal_aux(quitarSaltoLinea(listaColores(leerArchivo(E))), 
-				colocarID(fix(quitarSaltoLinea(listaFiguras(leerArchivo(E))))),N, M, S).
-principal_aux(_Colores, Figuras, _N, _M, _S) -> katamino(Figuras).
+
+katamino(PermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal)->LCFig.
+
+principal(E, N, M, S) -> principal_aux(quitarSaltoLinea(listaColores(leerArchivo(E))),
+						lists:reverse(fix(quitarSaltoLinea(listaFiguras(leerArchivo(E))))),N, M, S).
+principal_aux(Colores, Figuras, N, M, S)->CFiguras=combinarPiezas(Figuras),LCFig=[length(F)||F<-CFiguras],
+		katamino(permutaciones(generarLisN(Figuras)),generarMatriz(N,M),Figuras,Colores,CFiguras,LCFig,S).
+
 
 generarAuxMatriz(0)->[];
 generarAuxMatriz(N)->[0|generarAuxMatriz(N-1)].
@@ -25,18 +34,38 @@ generarMatriz(0,_M)->[];
 generarMatriz(N,M)->[generarAuxMatriz(M)|generarMatriz(N-1,M)].
 
 
+generarLisN([])->[];
+generarLisN(L)->generarLisN(L,1).
+
+generarLisN([],_)->[];
+generarLisN([H|T],N)->[N]++generarLisN(T,N+1).
+
+
+combinarPiezas([])->[];
+combinarPiezas([H|T])->[combinacionesPieza(H)|combinarPiezas(T)].
+
+combinacionesPieza(P)->remove_duplicates(combPiezas(P,1)).
+
+combPiezas(_L, 9) ->[];
+combPiezas(L, C) when C == 1 -> [L|combPiezas(L, C + 1)];
+combPiezas(L, C) when C rem 2 == 0 -> L1 = transpuesta(L), [L1| combPiezas(L1,C + 1)];
+combPiezas(L, C) -> L1 = inversa(L),[L1| combPiezas(L1, C + 1)].
+
+
+
+
+%remove_duplicates(List)
+
 %Generar katamino
-katamino([]) -> [];
-katamino([H|T]) -> katamino_auxi(H, T, 1).
+%katamino([]) -> [];
+%katamino([H|T]) -> katamino_auxi(H, T, 1).
 
-katamino_auxi([_H|T], R, C) -> katamino_aux(T, R, C).
+%katamino_auxi([_H|T], R, C) -> katamino_aux(T, R, C).
 
-katamino_aux(_L, R, 9) -> katamino(R);
-katamino_aux([H|_T], R, C) when C == 1 -> [H|katamino_aux(H, R, C + 1)];
-katamino_aux(T, R, C) when C rem 2 == 0 -> L = transpuesta(T), [L| katamino_aux(L, R, C + 1)];
-katamino_aux(T, R, C) -> L = inversa(T),[L| katamino_aux(L, R, C + 1)].
-
-
+%katamino_aux(_L, R, 9) -> katamino(R);
+%katamino_aux([H|_T], R, C) when C == 1 -> [H|katamino_aux(H, R, C + 1)];
+%katamino_aux(T, R, C) when C rem 2 == 0 -> L = transpuesta(T), [L| katamino_aux(L, R, C + 1)];
+%katamino_aux(T, R, C) -> L = inversa(T),[L| katamino_aux(L, R, C + 1)].
 
 
 %colocar Pieza en Matriz
