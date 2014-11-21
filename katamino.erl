@@ -35,6 +35,7 @@ solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm)->solkatamino(1,HPe
 %Backtracking de solucion del katamino
 solkatamino(NumP,HPermFig,_Matriz,_Figuras,_CFiguras,_LCFig,_LCFigPerm,Sol,false) when NumP > length(HPermFig) -> Sol;
 solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
+	io:format("LCFig ~p~n",[LCFig]),	
 	io:format("Entre",[]),
 	NumFig=getElementList(HPermFig,NumP),
 	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,getElementList(LCFig,NumFig),getElementList(LCFigPerm,NumFig));
@@ -42,6 +43,7 @@ solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
 solkatamino(NumP,HPermFig,_Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,Colocado)->io:format("Encontrada",[]),	
 	[InfoPieza,NewMatriz]=Colocado,solkatamino(NumP+1,HPermFig,NewMatriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol++[InfoPieza],false).
 
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)when ((N==M) and (NumP==1))->false;
 solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)when N==M->
 	io:format("Error",[]),
 	NumFig=getElementList(HPermFig,NumP),

@@ -25,7 +25,7 @@
 katamino([],_,_,_,_,_,_,_)->io:format("No hay mas soluciones~n",[]);
 katamino([HPermFig|TPermFig],Matriz,Figuras,Colores,CFiguras,LCFig,Sal,false)->
 			io:format("Inicio",[]),
-			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig))),
+			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig)));
 			katamino(TPermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal,Sol);
 katamino([_HPermFig|_TPermFig],_Matriz,_Figuras,_Colores,_CFiguras,_LCFig,_Sal,Sol)->io:format("No hay mas soluciones ~p~n",[Sol]).
 		
@@ -35,6 +35,7 @@ solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm)->solkatamino(1,HPe
 %Backtracking de solucion del katamino
 solkatamino(NumP,HPermFig,_Matriz,_Figuras,_CFiguras,_LCFig,_LCFigPerm,Sol,false) when NumP > length(HPermFig) -> Sol;
 solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
+	io:format("LCFig ~p~n",[LCFig]),	
 	io:format("Entre",[]),
 	NumFig=getElementList(HPermFig,NumP),
 	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,getElementList(LCFig,NumFig),getElementList(LCFigPerm,NumFig));
@@ -42,6 +43,7 @@ solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
 solkatamino(NumP,HPermFig,_Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,Colocado)->io:format("Encontrada",[]),	
 	[InfoPieza,NewMatriz]=Colocado,solkatamino(NumP+1,HPermFig,NewMatriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol++[InfoPieza],false).
 
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)when ((N==M) and (NumP==1))->false;
 solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)when N==M->
 	io:format("Error",[]),
 	NumFig=getElementList(HPermFig,NumP),
@@ -119,9 +121,9 @@ colocarPieza(Pieza,Matriz,0,Y,NM)->colPieza(Pieza,Matriz,NM,[],Y);
 colocarPieza(Pieza,[HM|TM],X,Y,NM)->colocarPieza(Pieza,TM,X-1,Y,NM++[HM]).
 
 colPieza(_P,_M,_NM,false,_)->false;
+colPieza(_P,[],_NM,_,_)->false;
 colPieza([],T,M,_F,_Y)->M++T;
-colPieza([H1|T1],[H2|T2],M,_Flag,Y)
-->L=colPiezaAux(H1,H2,[],Y),colPieza(T1,T2,M++[L],L,Y).
+colPieza([H1|T1],[H2|T2],M,_Flag,Y)->L=colPiezaAux(H1,H2,[],Y),colPieza(T1,T2,M++[L],L,Y).
 
 colPiezaAux([],T,F,0)->F++T;
 colPiezaAux(_P,[],_F,_N)->false;
