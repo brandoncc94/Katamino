@@ -24,13 +24,33 @@
 
 katamino([],_,_,_,_,_,_,_)->io:format("No hay mas soluciones~n",[]);
 katamino([HPermFig|TPermFig],Matriz,Figuras,Colores,CFiguras,LCFig,Sal,false)->
-			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig)),[]),
+			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig))),
 			katamino(TPermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal,Sol);
 katamino([_HPermFig|_TPermFig],_Matriz,_Figuras,_Colores,_CFiguras,_LCFig,_Sal,Sol)->io:format("No hay mas soluciones ~p~n",[Sol]).
 		
-solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFigPerm,LCFigPerm,Sol)->false;
-solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol)->HPermFig.
+solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm)->solkatamino(1,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,[],false).
 
+
+%Backtracking de solucion del katamino
+solkatamino(NumP,HPermFig,_Matriz,_Figuras,_CFiguras,_LCFig,_LCFigPerm,Sol,false) when NumP > length(HPermFig) -> Sol;
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
+	NumFig=getElementList(HPermFig,NumP),
+	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,getElementList(LCFig,NumFig),getElementList(LCFigPerm,NumFig));
+
+solkatamino(NumP,HPermFig,_Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,Colocado)->
+	NumFig=getElementList(HPermFig,NumP),	
+	[[InfoPieza],NewMatriz]=Colocado,solkatamino(NumP+1,HPermFig,NewMatriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol++[InfoPieza],false).
+
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,N)->
+	NumFig=getElementList(HPermFig,NumP),
+	[[X,Y],Pie]=lists:last(Sol),LastMatriz=quitarPieza(Pie,Matriz,X,Y,[]),
+	solkatamino(NumP-1,HPermFig,LastMatriz,Figuras,CFiguras,LCFig,sumValueList(LCFigPerm,NumFig,-1*(getElementList(LCFigPerm,NumFig))),
+				Sol--[lists:last(Sol)],false);
+
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)->
+	NumFig=getElementList(HPermFig,NumP), NewLCFPerm=sumValueList(LCFigPerm,NumFig,1),
+	NewMatriz=colocarPieza(getElementMatrix(CFiguras,NumFig,getElementList(NewLCFPerm,NumFig)),Matriz),
+	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,NewLCFPerm,Sol,false).
 
 %Funcion que genera una lista de N 1's
 genLCFig(0)->[];
@@ -46,7 +66,7 @@ sumValueList([H|T],N,V)->[H]++sumValueList(T,N-1,V).
 principal(E, N, M, S) -> principal_aux(quitarSaltoLinea(listaColores(leerArchivo(E))),
 						lists:reverse(fix(quitarSaltoLinea(listaFiguras(leerArchivo(E))))),N, M, S).
 principal_aux(Colores, Figuras, N, M, S)->CFiguras=combinarPiezas(Figuras),LCFig=[length(F)||F<-CFiguras],
-		katamino(permutaciones(generarLisN(Figuras)),generarMatriz(N,M),Figuras,Colores,CFiguras,LCFig,S,[]).
+		katamino(permutaciones(generarLisN(Figuras)),generarMatriz(N,M),Figuras,Colores,CFiguras,LCFig,S,false).
 
 
 getElementList(L,N)->lists:nth(N,L).
