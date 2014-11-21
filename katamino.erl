@@ -17,13 +17,14 @@
 -export([combinarPiezas/1]).
 -export([sumValueList/3]).
 -export([quitarPieza/5]).
-
+-export([genLCFig/1]).
 
 %Entrada, N * M, Salida
 
 
 katamino([],_,_,_,_,_,_,_)->io:format("No hay mas soluciones~n",[]);
 katamino([HPermFig|TPermFig],Matriz,Figuras,Colores,CFiguras,LCFig,Sal,false)->
+			io:format("Inicio",[]),
 			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig))),
 			katamino(TPermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal,Sol);
 katamino([_HPermFig|_TPermFig],_Matriz,_Figuras,_Colores,_CFiguras,_LCFig,_Sal,Sol)->io:format("No hay mas soluciones ~p~n",[Sol]).
@@ -34,27 +35,30 @@ solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm)->solkatamino(1,HPe
 %Backtracking de solucion del katamino
 solkatamino(NumP,HPermFig,_Matriz,_Figuras,_CFiguras,_LCFig,_LCFigPerm,Sol,false) when NumP > length(HPermFig) -> Sol;
 solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false)->
+	io:format("Entre",[]),
 	NumFig=getElementList(HPermFig,NumP),
 	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,getElementList(LCFig,NumFig),getElementList(LCFigPerm,NumFig));
 
-solkatamino(NumP,HPermFig,_Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,Colocado)->
-	NumFig=getElementList(HPermFig,NumP),	
-	[[InfoPieza],NewMatriz]=Colocado,solkatamino(NumP+1,HPermFig,NewMatriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol++[InfoPieza],false).
+solkatamino(NumP,HPermFig,_Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,Colocado)->io:format("Encontrada",[]),	
+	[InfoPieza,NewMatriz]=Colocado,solkatamino(NumP+1,HPermFig,NewMatriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol++[InfoPieza],false).
 
-solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,N)->
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)when N==M->
+	io:format("Error",[]),
 	NumFig=getElementList(HPermFig,NumP),
 	[[X,Y],Pie]=lists:last(Sol),LastMatriz=quitarPieza(Pie,Matriz,X,Y,[]),
 	solkatamino(NumP-1,HPermFig,LastMatriz,Figuras,CFiguras,LCFig,sumValueList(LCFigPerm,NumFig,-1*(getElementList(LCFigPerm,NumFig))),
 				Sol--[lists:last(Sol)],false);
 
-solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,N,M)->
+solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol,false,_N,_M)->
+	io:format("Por aca",[]),	
 	NumFig=getElementList(HPermFig,NumP), NewLCFPerm=sumValueList(LCFigPerm,NumFig,1),
+	io:format("~n~p~n",[NewLCFPerm]),
 	NewMatriz=colocarPieza(getElementMatrix(CFiguras,NumFig,getElementList(NewLCFPerm,NumFig)),Matriz),
-	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,NewLCFPerm,Sol,false).
+	solkatamino(NumP,HPermFig,Matriz,Figuras,CFiguras,LCFig,NewLCFPerm,Sol,NewMatriz).
 
 %Funcion que genera una lista de N 1's
 genLCFig(0)->[];
-genLCFig(N)->[1]++[genLCFig(N-1)].
+genLCFig(N)->[0]++genLCFig(N-1).
 
 %Funcion para sumarle un valor a un elemento en una posicion de una lista
 sumValueList([H|T],1,V)->[H+V|T];
@@ -84,7 +88,7 @@ generarLisN([])->[];
 generarLisN(L)->generarLisN(L,1).
 
 generarLisN([],_)->[];
-generarLisN([H|T],N)->[N]++generarLisN(T,N+1).
+generarLisN([_H|T],N)->[N]++generarLisN(T,N+1).
 
 
 combinarPiezas([])->[];
@@ -96,11 +100,6 @@ combPiezas(_L, 9) ->[];
 combPiezas(L, C) when C == 1 -> [L|combPiezas(L, C + 1)];
 combPiezas(L, C) when C rem 2 == 0 -> L1 = transpuesta(L), [L1| combPiezas(L1,C + 1)];
 combPiezas(L, C) -> L1 = inversa(L),[L1| combPiezas(L1, C + 1)].
-
-
-
-
-%remove_duplicates(List)
 
 %colocar Pieza en Matriz
 colocarPieza(Pieza,[HM|TM])-> LC= length(HM),LF = length([HM|TM]),
@@ -120,9 +119,9 @@ colocarPieza(Pieza,Matriz,0,Y,NM)->colPieza(Pieza,Matriz,NM,[],Y);
 colocarPieza(Pieza,[HM|TM],X,Y,NM)->colocarPieza(Pieza,TM,X-1,Y,NM++[HM]).
 
 colPieza(_P,_M,_NM,false,_)->false;
+colPieza(_P,[],_NM,_,_)->false;
 colPieza([],T,M,_F,_Y)->M++T;
-colPieza([H1|T1],[H2|T2],M,_Flag,Y)
-->L=colPiezaAux(H1,H2,[],Y),colPieza(T1,T2,M++[L],L,Y).
+colPieza([H1|T1],[H2|T2],M,_Flag,Y)->L=colPiezaAux(H1,H2,[],Y),colPieza(T1,T2,M++[L],L,Y).
 
 colPiezaAux([],T,F,0)->F++T;
 colPiezaAux(_P,[],_F,_N)->false;
@@ -141,8 +140,8 @@ quitPieza([H1|T1],[H2|T2],M,_Flag,Y)
 ->L=quitPiezaAux(H1,H2,[],Y),quitPieza(T1,T2,M++[L],L,Y).
 
 quitPiezaAux([],T,F,0)->F++T;
-quitPiezaAux([H1|T1],[H2|T2],F,0)when H1 == 1 ->quitPiezaAux(T1,T2,F++[0],0);
-quitPiezaAux([H1|T1],[H2|T2],F,0)->quitPiezaAux(T1,T2,F++[H2],0);
+quitPiezaAux([H1|T1],[_H2|T2],F,0)when H1 == 1 ->quitPiezaAux(T1,T2,F++[0],0);
+quitPiezaAux([_H1|T1],[H2|T2],F,0)->quitPiezaAux(T1,T2,F++[H2],0);
 quitPiezaAux(P,[H|T],F,N)->quitPiezaAux(P,T,F++[H],N-1).
 
 
