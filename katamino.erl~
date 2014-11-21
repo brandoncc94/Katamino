@@ -15,16 +15,42 @@
 -export([generarLisN/1]).
 -export([combinacionesPieza/1]).
 -export([combinarPiezas/1]).
+-export([sumValueList/3]).
+-export([quitarPieza/5]).
 
 
 %Entrada, N * M, Salida
 
-katamino(PermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal)->LCFig.
+
+katamino([],_,_,_,_,_,_,_)->io:format("No hay mas soluciones~n",[]);
+katamino([HPermFig|TPermFig],Matriz,Figuras,Colores,CFiguras,LCFig,Sal,false)->
+			Sol=solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,genLCFig(length(HPermFig)),[]),
+			katamino(TPermFig,Matriz,Figuras,Colores,CFiguras,LCFig,Sal,Sol);
+katamino([_HPermFig|_TPermFig],_Matriz,_Figuras,_Colores,_CFiguras,_LCFig,_Sal,Sol)->io:format("No hay mas soluciones ~p~n",[Sol]).
+		
+solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFigPerm,LCFigPerm,Sol)->false;
+solkatamino(HPermFig,Matriz,Figuras,CFiguras,LCFig,LCFigPerm,Sol)->HPermFig.
+
+
+%Funcion que genera una lista de N 1's
+genLCFig(0)->[];
+genLCFig(N)->[1]++[genLCFig(N-1)].
+
+%Funcion para sumarle un valor a un elemento en una posicion de una lista
+sumValueList([H|T],1,V)->[H+V|T];
+sumValueList([H|T],N,V)->[H]++sumValueList(T,N-1,V).
+
+
+%getElementMatrix(CFiguras,1,1).%LCFig.
 
 principal(E, N, M, S) -> principal_aux(quitarSaltoLinea(listaColores(leerArchivo(E))),
 						lists:reverse(fix(quitarSaltoLinea(listaFiguras(leerArchivo(E))))),N, M, S).
 principal_aux(Colores, Figuras, N, M, S)->CFiguras=combinarPiezas(Figuras),LCFig=[length(F)||F<-CFiguras],
-						katamino(permutaciones(generarLisN(Figuras)),generarMatriz(N,M),Figuras,Colores,CFiguras,LCFig,S).
+		katamino(permutaciones(generarLisN(Figuras)),generarMatriz(N,M),Figuras,Colores,CFiguras,LCFig,S,[]).
+
+
+getElementList(L,N)->lists:nth(N,L).
+getElementMatrix(L,M,N)->lists:nth(N,lists:nth(M,L)).
 
 
 generarAuxMatriz(0)->[];
@@ -56,37 +82,26 @@ combPiezas(L, C) -> L1 = inversa(L),[L1| combPiezas(L1, C + 1)].
 
 %remove_duplicates(List)
 
-%Generar katamino
-%katamino([]) -> [];
-%katamino([H|T]) -> katamino_auxi(H, T, 1).
-
-%katamino_auxi([_H|T], R, C) -> katamino_aux(T, R, C).
-
-%katamino_aux(_L, R, 9) -> katamino(R);
-%katamino_aux([H|_T], R, C) when C == 1 -> [H|katamino_aux(H, R, C + 1)];
-%katamino_aux(T, R, C) when C rem 2 == 0 -> L = transpuesta(T), [L| katamino_aux(L, R, C + 1)];
-%katamino_aux(T, R, C) -> L = inversa(T),[L| katamino_aux(L, R, C + 1)].
-
-
 %colocar Pieza en Matriz
-
 colocarPieza(Pieza,[HM|TM])-> LC= length(HM),LF = length([HM|TM]),
-				colocarPieza(Pieza,[HM|TM],0,0,LF-1,LC-1,false).
+				colocarPieza(Pieza,[HM|TM],0,0,LF-1,LC-1,true).
+
+%Funcion colocarPieza para buscar los lugares para colocar la pieza
 
 colocarPieza(_Pieza,_Matriz,X1,_Y1,X2,_Y2,false) when X1 > X2 ->false;
 colocarPieza(Pieza,Matriz,X1,Y1,X2,Y2,false)when Y1 > Y2 -> colocarPieza(Pieza,Matriz,X1+1,0,X2,Y2,false);
 colocarPieza(Pieza,Matriz,X1,Y1,X2,Y2,false)-> NM = colocarPieza(Pieza,Matriz,X1,Y1,[]),
 						    colocarPieza(Pieza,Matriz,X1,Y1+1,X2,Y2,NM);
-colocarPieza(_,_,_,_,_,_,NM)->NM.
+colocarPieza(Pieza,Matriz,X1,Y1,X2,Y2,true)-> NM = colocarPieza(Pieza,Matriz,X1,Y1,[]),
+						    colocarPieza(Pieza,Matriz,X1,Y1,X2,Y2,NM);
+colocarPieza(Pieza,_,X1,Y1,_,_,NM)->[[[X1,Y1],Pieza],NM].
 
+
+%Funcion que coloca la pieza en la matriz
 colocarPieza(Pieza,Matriz,0,Y,NM)->colPieza(Pieza,Matriz,NM,[],Y);
 colocarPieza(Pieza,[HM|TM],X,Y,NM)->colocarPieza(Pieza,TM,X-1,Y,NM++[HM]).
 
-%katamino:colocarPieza([[1,1]],[],1,0,[[1,1,0],[0,0,0]])
-%katamino:colPieza([[1],[1]],[],[[1,1,0],[1,1,0]],[],0)
-
 colPieza(_P,_M,_NM,false,_)->false;
-%colPieza(P,[],_NM,_,_)when not(P==[]) ->false;
 colPieza([],T,M,_F,_Y)->M++T;
 colPieza([H1|T1],[H2|T2],M,_Flag,Y)
 ->L=colPiezaAux(H1,H2,[],Y),colPieza(T1,T2,M++[L],L,Y).
@@ -97,6 +112,22 @@ colPiezaAux([_H1|_T1],[H2|_T2],_F,0)when H2 == 1 -> false;
 colPiezaAux([H1|T1],[H2|T2],F,0)when H1 == 0 ->colPiezaAux(T1,T2,F++[H2],0);
 colPiezaAux([H1|T1],[_H2|T2],F,0)->colPiezaAux(T1,T2,F++[H1],0);
 colPiezaAux(P,[H|T],F,N)->colPiezaAux(P,T,F++[H],N-1).
+
+%Funcion para quitar una pieza en la matriz
+quitarPieza(Pieza,Matriz,0,Y,NM)->quitPieza(Pieza,Matriz,NM,[],Y);
+quitarPieza(Pieza,[HM|TM],X,Y,NM)->quitarPieza(Pieza,TM,X-1,Y,NM++[HM]).
+
+quitPieza(_P,_M,_NM,false,_)->false;
+quitPieza([],T,M,_F,_Y)->M++T;
+quitPieza([H1|T1],[H2|T2],M,_Flag,Y)
+->L=quitPiezaAux(H1,H2,[],Y),quitPieza(T1,T2,M++[L],L,Y).
+
+quitPiezaAux([],T,F,0)->F++T;
+quitPiezaAux([H1|T1],[H2|T2],F,0)when H1 == 1 ->quitPiezaAux(T1,T2,F++[0],0);
+quitPiezaAux([H1|T1],[H2|T2],F,0)->quitPiezaAux(T1,T2,F++[H2],0);
+quitPiezaAux(P,[H|T],F,N)->quitPiezaAux(P,T,F++[H],N-1).
+
+
 
 
 %Generacion de Posibles combinaciones de las figuras
